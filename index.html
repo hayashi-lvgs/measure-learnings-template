@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>施策学習サイト</title>
+<link rel="stylesheet" href="assets/css/style.css">
+<script>
+/* 保存済みテーマを描画前に適用（チラつき防止）。未選択ならOSの設定に追従。 */
+(function(){try{var t=localStorage.getItem('cta-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();
+</script>
+</head>
+<body>
+
+<!-- ===== HTML ===== -->
+<header class="site-header">
+  <span class="site-title" id="site-title">施策学習サイト</span>
+  <span class="site-badge" id="site-badge">事業部名</span>
+  <div class="view-toggle">
+    <button class="view-btn active" id="btn-list" onclick="switchView('list')">一覧</button>
+    <button class="view-btn" id="btn-insights" onclick="switchView('insights')">横断インサイト</button>
+  </div>
+  <button class="import-link" type="button" onclick="openImport()" title="検証用シートPDFをドロップして即カード化（このブラウザに一時保存）">＋ PDFから取り込み</button>
+  <button class="theme-toggle" id="theme-toggle" type="button" onclick="toggleTheme()" title="ダークモードに切替" aria-label="ダークモードに切替">🌙</button>
+</header>
+
+<div class="layout">
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-search">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" type="text" id="search-input" placeholder="施策を検索…" oninput="applyFilters()">
+  </div>
+  <div class="sidebar-group">
+    <div class="sidebar-title">施策タイプ</div>
+    <nav id="sidebar-types"></nav>
+  </div>
+  <div class="sidebar-group">
+    <div class="sidebar-title">デバイス</div>
+    <div class="sidebar-devices" id="device-chips"></div>
+  </div>
+  <div class="sidebar-footer" id="filter-count"></div>
+</aside>
+<div class="content">
+
+<!-- ⚠️ この注意書きは汎用文です。事業部の事情（季節性・ターゲット層・市場要因など）に
+     合わせて下の <li> を書き換えてください。 -->
+<div class="disclaimer-banner" id="disclaimer-banner">
+  <div class="disclaimer-summary" onclick="toggleDisclaimer()">
+    <span class="disclaimer-icon">⚠️</span>
+    <span class="disclaimer-short">
+      <strong>施策結果の読み方について</strong> ― 記載の数値はテスト期間中のスナップショットです。ABテスト結果のみで施策の価値を断言せず、外部環境を必ず考慮してください。
+    </span>
+    <button class="disclaimer-toggle-btn" id="disclaimer-btn">詳しく見る</button>
+  </div>
+  <div class="disclaimer-detail" id="disclaimer-detail">
+    <ul>
+      <li><strong>① 季節性・YoY（前年同期比）</strong> — 時期により母数や流入の質が変動する。前年同期と環境が変わっていると、純粋な施策効果との分離が難しくなる。</li>
+      <li><strong>② ユーザー層の変化</strong> — 対象ユーザーの属性・ニーズ・情報感度が変われば、同一施策でも結果が変わりうる。</li>
+      <li><strong>③ 市場・社会動向</strong> — 景況感・季節要因・キャンペーン等の外部要因が、ユーザーの行動動機に影響する。テスト期間中に大きな変動があった場合は特に注意。</li>
+      <li><strong>④ 競合・外部要因</strong> — 競合の大型施策・検索アルゴリズムの更新・流入量の変動が、流入ユーザーの質を変える可能性がある。</li>
+    </ul>
+    <p style="margin-top:8px;font-style:italic;">「勝ち/負け」はあくまでテスト条件下での判定。上記を踏まえたうえで、次施策の設計に活かすことが重要です。</p>
+  </div>
+</div>
+
+<main class="main">
+  <!-- List view -->
+  <div id="view-list">
+    <div class="result-section" id="section-win">
+      <div class="section-head">
+        <div class="section-marker win"></div>
+        <span class="section-title">✅ 勝ち</span>
+        <span class="section-count" id="count-win"></span>
+      </div>
+      <div class="cards-masonry" id="cards-win"></div>
+    </div>
+    <div class="result-section" id="section-draw">
+      <div class="section-head">
+        <div class="section-marker draw"></div>
+        <span class="section-title">➖ 引き分け</span>
+        <span class="section-count" id="count-draw"></span>
+      </div>
+      <div class="cards-masonry" id="cards-draw"></div>
+    </div>
+    <div class="result-section" id="section-loss">
+      <div class="section-head">
+        <div class="section-marker loss"></div>
+        <span class="section-title">❌ 負け</span>
+        <span class="section-count" id="count-loss"></span>
+      </div>
+      <div class="cards-masonry" id="cards-loss"></div>
+    </div>
+    <div id="no-results" style="display:none">
+      <div class="empty-card">まだ施策がありません。ヘッダーの「＋ PDFから取り込み」で試すか、data/measures.js に施策を追加してください。</div>
+    </div>
+  </div>
+
+  <!-- Insights view -->
+  <div id="view-insights">
+    <div class="ins-panel" style="margin-bottom:var(--sp-24)">
+      <div class="ins-panel-title"><span class="ins-panel-icon">📊</span> 全体勝率</div>
+      <div class="score-bar-wrap">
+        <div class="score-bar" id="score-bar"></div>
+        <div class="score-legend">
+          <div class="score-legend-item"><div class="legend-dot" style="background:var(--win-border)"></div>勝ち</div>
+          <div class="score-legend-item"><div class="legend-dot" style="background:var(--draw-border)"></div>引き分け</div>
+          <div class="score-legend-item"><div class="legend-dot" style="background:var(--loss-border)"></div>負け</div>
+        </div>
+      </div>
+      <p style="font-size:13px;color:var(--text-medium);margin-top:var(--sp-8)">判定方法: チームの採用判断基準 — 本番採用 = 勝ち、デバイス別採用・継続中 = 引き分け、未採用 = 負け（事業部で運用を決めてください）</p>
+    </div>
+    <div class="ins-grid">
+      <div class="ins-panel">
+        <div class="ins-panel-title"><span class="ins-panel-icon">💡</span> 横断パターン</div>
+        <div id="pattern-list"></div>
+      </div>
+      <div class="ins-panel">
+        <div class="ins-panel-title"><span class="ins-panel-icon">🧪</span> 仮説の外れパターン</div>
+        <div id="hypo-miss-list"></div>
+      </div>
+    </div>
+
+    <h2 style="font-size:15px;font-weight:700;margin-bottom:var(--sp-16);color:var(--text-high)">施策別サマリ</h2>
+    <div class="ins-grid" id="all-cards-insights"></div>
+  </div>
+</main>
+
+</div><!-- /.content -->
+</div><!-- /.layout -->
+
+<!-- ===== PDF取り込みオーバーレイ（サイト上で即カード化・localStorage保存） ===== -->
+<div class="import-overlay" id="import-overlay" onclick="closeImportOnOverlay(event)">
+  <div class="import-modal">
+    <div class="import-modal-head">
+      <strong>PDFから施策カードを取り込み</strong>
+      <button class="modal-close" type="button" onclick="closeImport()">×</button>
+    </div>
+    <p class="import-note">
+      検証用シートPDFをドロップすると、このブラウザに<strong>即カード化</strong>されます。
+      ⚠️ これは <strong>measures.js に未保存＝他の人には共有されません</strong>（このブラウザのみ）。
+      機械抽出のみの下書きで、判定（勝ち/負け）・事実/AI推論の仕分け・デザイン観点は<strong>要レビュー</strong>です。
+    </p>
+    <div id="site-drop" class="site-drop">
+      <strong>PDFをここにドロップ</strong><br>
+      <span>またはクリックして選択（.pdf）</span>
+      <input type="file" id="site-file" accept="application/pdf,.pdf" hidden>
+    </div>
+    <div id="import-status" class="import-status"></div>
+    <p class="import-foot">
+      measures.js に「正」として保存し事業部の全員に共有したい場合は
+      <a href="tools/import.html">取り込みツール（スニペット出力）</a> を使ってください。
+    </p>
+  </div>
+</div>
+
+<!-- ===== Modal ===== -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOnOverlay(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <div class="modal-hinfo">
+        <div class="modal-badges" id="modal-badges"></div>
+        <div class="modal-title" id="modal-title"></div>
+        <div class="modal-id" id="modal-id"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- ===== サイト設定（事業部ごと・最初にここを編集） ===== -->
+<script src="data/site.js"></script>
+<!-- ===== データ（施策の正: MEASURES / INSIGHTS / SCREENSHOTS） ===== -->
+<script src="data/measures.js"></script>
+<!-- ===== PDF取り込み用（pdf.jsローカル同梱・CDN不使用）+ 共通抽出ロジック ===== -->
+<script>window.PDFJS_WORKER_SRC = "vendor/pdfjs/pdf.worker.min.js";</script>
+<script src="vendor/pdfjs/pdf.min.js"></script>
+<script src="assets/js/extract.js"></script>
+<!-- ===== 表示ロジック（末尾で init() 実行） ===== -->
+<script src="assets/js/app.js"></script>
+
+</body>
+</html>

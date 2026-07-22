@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>施策取り込み（PDF→カード下書き） — CTA</title>
+<script>
+(function(){try{var t=localStorage.getItem('cta-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();
+</script>
+<link rel="stylesheet" href="../assets/css/style.css">
+<style>
+  .imp-wrap { max-width: 1100px; margin: 0 auto; padding: 24px 20px 60px; }
+  .imp-head { display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+  .imp-head h1 { font-size:18px; font-weight:700; color:var(--text-high); margin:0; }
+  .back-link { font-size:13px; color:var(--text-medium); text-decoration:none; border:1px solid var(--border-low); padding:4px 10px; border-radius:6px; }
+  .lead { font-size:13px; color:var(--text-medium); line-height:1.7; margin:4px 0 20px; }
+  .warn-note { background:var(--draw-bg,#fff8e6); border:1px solid var(--draw-border,#e0b400); border-radius:8px; padding:10px 14px; font-size:12.5px; color:var(--text-medium); line-height:1.6; margin-bottom:20px; }
+  #drop { border:2px dashed var(--border-low); border-radius:12px; padding:36px 20px; text-align:center; cursor:pointer; color:var(--text-medium); transition:.15s; background:var(--bg-card,transparent); }
+  #drop.over { border-color:var(--win-border,#2a9d5c); background:var(--win-bg,#eefaf1); }
+  #drop strong { color:var(--text-high); font-size:15px; }
+  .status { margin:14px 0; font-size:13px; min-height:20px; line-height:1.6; }
+  .status.ok { color:var(--win-border,#2a9d5c); }
+  .status.err { color:var(--loss-border,#c0392b); }
+  #result-area { display:none; margin-top:20px; }
+  .cols { display:grid; grid-template-columns: 1fr 1fr; gap:24px; align-items:start; }
+  @media (max-width:840px){ .cols { grid-template-columns:1fr; } }
+  .col h3 { font-size:14px; font-weight:700; color:var(--text-high); margin:0 0 12px; }
+  .detail { margin-top:16px; }
+  .detail-sec { margin-bottom:14px; }
+  .detail-sec h4 { font-size:12px; font-weight:700; color:var(--text-medium); margin:0 0 4px; }
+  .detail-sec p { font-size:13px; color:var(--text-high); margin:0; line-height:1.6; }
+  .detail .blk-list { margin:0; padding-left:18px; }
+  .detail .blk-list li { font-size:12.5px; color:var(--text-high); line-height:1.6; margin-bottom:3px; }
+  .muted { font-size:12px; color:var(--text-low,#999); margin:0; }
+  #snippet { width:100%; height:420px; font-family:ui-monospace,Menlo,Consolas,monospace; font-size:12px; line-height:1.5; padding:12px; border:1px solid var(--border-low); border-radius:8px; background:var(--bg-card,#fafafa); color:var(--text-high); resize:vertical; box-sizing:border-box; }
+  .btn { font-size:13px; font-weight:600; padding:7px 14px; border-radius:7px; border:1px solid var(--border-low); background:transparent; color:var(--text-high); cursor:pointer; }
+  .btn.primary { background:var(--win-border,#2a9d5c); color:#fff; border-color:transparent; }
+  .warnings { background:var(--loss-bg,#fdecea); border:1px solid var(--loss-border,#c0392b); border-radius:8px; padding:10px 14px 10px 30px; margin:0 0 14px; }
+  .warnings li { font-size:12.5px; color:var(--text-high); line-height:1.6; margin-bottom:4px; }
+  .steps { font-size:12.5px; color:var(--text-medium); line-height:1.8; margin-top:10px; padding-left:18px; }
+</style>
+</head>
+<body>
+<div class="imp-wrap">
+  <div class="imp-head">
+    <a class="back-link" href="../index.html">← サイトへ戻る</a>
+    <h1>施策取り込み（PDF → カード下書き）</h1>
+  </div>
+  <p class="lead">
+    検証用シートPDF（「【CTA】オウンド_検証用シート - …」形式）を読み込むと、
+    <code>data/measures.js</code> に貼り付けるカード下書き（MEASURESオブジェクト）を自動生成します。
+  </p>
+  <div class="warn-note">
+    ⚠️ これは<strong>機械抽出のみの下書き</strong>です。このサイトの核である「<strong>事実とAI推論の区別</strong>」「判定（勝ち/負け）」「デザイン観点」は
+    自動では正しく作れません。生成物には <code>autoExtracted:true</code> の目印が付きます。
+    <strong>貼り付け後に人＋Claudeでレビューして仕上げ、目印を消してください。</strong>
+  </div>
+
+  <div id="drop">
+    <strong>PDFをここにドロップ</strong><br>
+    <span style="font-size:12.5px">またはクリックしてファイルを選択（.pdf）</span>
+    <input type="file" id="file-input" accept="application/pdf,.pdf" hidden>
+  </div>
+
+  <div id="status" class="status"></div>
+
+  <div id="result-area">
+    <ul class="warnings" id="warnings"></ul>
+    <div class="cols">
+      <div class="col">
+        <h3>プレビュー（抽出内容の確認）</h3>
+        <div id="preview"></div>
+      </div>
+      <div class="col">
+        <h3>measures.js 貼り付け用スニペット</h3>
+        <button class="btn primary" id="copy-btn" style="margin-bottom:10px">📋 コピー</button>
+        <textarea id="snippet" spellcheck="false" readonly></textarea>
+        <ol class="steps">
+          <li><code>data/measures.js</code> を開く</li>
+          <li><code>MEASURES</code> 配列の末尾（最後の <code>}</code> の後）に <code>,</code> を付けて貼り付け</li>
+          <li>ブラウザで <code>index.html</code> を開き、カードが出るか確認</li>
+          <li><strong>Claudeにレビュー依頼</strong>して事実/推論・判定・デザイン観点を仕上げ、<code>autoExtracted</code> 行を削除</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- pdf.js（ローカル同梱・CDN不使用）+ 共通抽出ロジック -->
+<script>window.PDFJS_WORKER_SRC = "../vendor/pdfjs/pdf.worker.min.js";</script>
+<script src="../data/site.js"></script>
+<script src="../vendor/pdfjs/pdf.min.js"></script>
+<script src="../assets/js/extract.js"></script>
+<!-- 取り込みツールUI -->
+<script src="import.js"></script>
+</body>
+</html>
