@@ -232,6 +232,22 @@
     const rootCause = [...manabi, ...toBullets(f["検証結果"])]
       .join(" / ") || "（要因を記入してください）";
 
+    // 参照URLを本文から隔離して links[] に集約する。
+    // （URLが factuals に混ざるとカードで横に見切れるため。関連リンク欄に別表示する）
+    const URL_RE = /https?:\/\/[^\s、。」）)]+/g;
+    const links = [];
+    ["Asana", "Figma", "FigmaURL", "Optimizely"].forEach(k => {
+      if (f[k]) (f[k].match(URL_RE) || []).forEach(u => links.push(u));
+    });
+    for (let i = factuals.length - 1; i >= 0; i--) {
+      const found = factuals[i].match(URL_RE);
+      if (!found) continue;
+      found.forEach(u => links.push(u));
+      const cleaned = factuals[i].replace(URL_RE, "").replace(/\s{2,}/g, " ").trim();
+      if (cleaned) factuals[i] = cleaned; else factuals.splice(i, 1);
+    }
+    const uniqueLinks = [...new Set(links)];
+
     return {
       id, title,
       type: guessType(title + " " + (f["施策背景"] || "")),
@@ -243,6 +259,7 @@
       hypothesisIsAI: false,
       background: (f["施策背景"] || "").replace(/\n/g, " "),
       factuals, hypothesisInsights, rootCause, metrics,
+      links: uniqueLinks,
       nextActions: toBullets(f["NA"]),
       designInsights: guessDesignInsights(manabi, kousatsu), // 🔧候補（要レビュー・CTユーザー前提で書き直す）
       autoExtracted: true   // ★機械抽出・未レビューの目印
@@ -276,6 +293,7 @@
     hypothesisInsights: ${arr(m.hypothesisInsights)}, // ⚠️要レビュー: 考察の自動仕分け
     rootCause: ${JSON.stringify(m.rootCause)},
     metrics: ${metrics},
+    links: ${arr(m.links || [])},
     nextActions: ${arr(m.nextActions)},
     designInsights: ${di}, // ⚠️🔧候補（自動生成）: CTユーザー前提で書き直し、🔧候補: を外す
     autoExtracted: true // ★機械抽出・未レビュー。仕上げ後にこの行を削除

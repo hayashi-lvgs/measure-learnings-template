@@ -298,6 +298,21 @@ function openModal(id) {
     `<div class="metric-pill"><div class="metric-lbl">${METRIC_LABELS[k] || k}</div><div class="metric-val">${v}</div></div>`
   ).join('');
 
+  // 施策概要（背景）— 何の施策か最低限わかるように必ず先頭で見せる
+  const backgroundHTML = (m.background && m.background.trim()) ? `
+    <div class="modal-sec">
+      <div class="modal-sec-title">📝 施策概要</div>
+      <div class="fact-blk"><div class="blk-content">${m.background}</div></div>
+    </div>` : '';
+
+  // 関連リンク（Asana/Figma/Optimizely等）— factualsに混ぜず別枠。長URLでも折り返す
+  const linksHTML = (m.links && m.links.length) ? `
+    <div class="modal-sec">
+      <div class="modal-sec-title">🔗 関連リンク</div>
+      <ul class="blk-list link-list">${m.links.map(u =>
+        `<li><a href="${u}" target="_blank" rel="noopener">${u}</a></li>`).join('')}</ul>
+    </div>` : '';
+
   const insightsHTML = [
     ...m.factuals.map(f => `<div class="insight-row"><div class="ins-dot neu">📋</div><div class="ins-text">${f}</div></div>`),
     ...m.hypothesisInsights.map(h => `<div class="insight-row"><div class="ins-dot neg">💭</div><div class="ins-text">【推論】${h}</div></div>`)
@@ -324,6 +339,7 @@ function openModal(id) {
 
   document.getElementById('modal-body').innerHTML = `
     ${localBanner}
+    ${backgroundHTML}
     ${screenshotHTML}
     <div class="modal-sec">
       <div class="modal-sec-title">仮説</div>
@@ -336,6 +352,7 @@ function openModal(id) {
       <div class="modal-sec-title">計測数値</div>
       <div class="metrics-row">${metricsHTML}</div>
     </div>
+    ${linksHTML}
     <div class="modal-sec">
       <div class="modal-sec-title">事実 vs AI推論の区別</div>
       ${factualHTML}

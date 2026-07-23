@@ -399,6 +399,15 @@ body {
 .blk-list li { margin-bottom: 6px; }
 .blk-list li:last-child { margin-bottom: 0; }
 
+/* 長文・長いURLが枠外へ見切れないよう必ず折り返す */
+.blk-content, .blk-list li, .ins-text, .card-title, .di-modal-text, .card-period {
+  overflow-wrap: anywhere; word-break: break-word;
+}
+/* 関連リンク欄（Asana/Figma/Optimizely等）*/
+.link-list li { word-break: break-all; }
+.link-list a { color: var(--text-primary); text-decoration: underline; }
+.link-list a:hover { opacity: .8; }
+
 /* Metrics row */
 .metrics-row { display: flex; gap: var(--sp-12); flex-wrap: wrap; }
 .metric-pill {
