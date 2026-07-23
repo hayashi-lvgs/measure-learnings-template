@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>施策蓄積サイト 取扱説明書</title>
+<style>
+  :root{
+    --ink:#1f2328; --sub:#57606a; --line:#d0d7de; --soft:#f6f8fa;
+    --green:#1a7f37; --gray:#6e7781; --red:#cf222e; --accent:#0969da;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+    color:var(--ink); line-height:1.75; margin:0; background:#fff;
+    font-size:15px;
+  }
+  .page{max-width:820px; margin:0 auto; padding:48px 40px 64px;}
+  h1{font-size:26px; font-weight:800; margin:0 0 4px; letter-spacing:.5px;}
+  .lead{color:var(--sub); font-size:14px; margin:0 0 28px; padding-bottom:20px; border-bottom:2px solid var(--line);}
+  h2{font-size:19px; font-weight:800; margin:34px 0 12px; padding-left:12px; border-left:5px solid var(--accent);}
+  h3{font-size:15px; font-weight:700; margin:20px 0 6px;}
+  p{margin:8px 0;}
+  ul,ol{margin:8px 0; padding-left:1.4em;}
+  li{margin:5px 0;}
+  strong{font-weight:700;}
+  code{background:var(--soft); border:1px solid var(--line); border-radius:5px; padding:1px 5px; font-size:.88em; font-family:ui-monospace,Menlo,Consolas,monospace;}
+  .callout{background:var(--soft); border:1px solid var(--line); border-left:4px solid var(--accent); border-radius:8px; padding:12px 16px; margin:14px 0; font-size:14px; color:var(--sub);}
+  .warn{border-left-color:var(--red); background:#fff5f5;}
+  .tip{border-left-color:var(--green); background:#f2fbf5;}
+  .tldr{background:#fff; border:2px solid var(--line); border-radius:12px; padding:16px 20px; margin:16px 0;}
+  table{border-collapse:collapse; width:100%; margin:12px 0; font-size:14px;}
+  th,td{border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top;}
+  th{background:var(--soft); font-weight:700;}
+  .badge{display:inline-block; font-size:12px; font-weight:700; padding:2px 8px; border-radius:20px; color:#fff;}
+  .b-green{background:var(--green);} .b-gray{background:var(--gray);} .b-red{background:var(--red);}
+  .method{border:1px solid var(--line); border-radius:12px; padding:4px 20px 16px; margin:14px 0;}
+  .method.rec{border-color:var(--green); box-shadow:0 0 0 1px var(--green) inset;}
+  .method h3{display:flex; align-items:center; gap:8px;}
+  .foot{margin-top:40px; padding-top:16px; border-top:2px solid var(--line); color:var(--sub); font-size:13px;}
+  @page{size:A4; margin:16mm 14mm;}
+  h2{break-after:avoid;} h3{break-after:avoid;}
+  .method,.tldr,table,.callout{break-inside:avoid;}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>施策蓄積サイト 取扱説明書</h1>
+  <p class="lead">はじめての人でも使えるように、やさしく説明します。専門知識は要りません。</p>
+
+  <h2>1. これは何？（30秒でわかる）</h2>
+  <div class="tldr">
+    <p><strong>やった施策（ABテストなど）の「勝ち・引き分け・負け」と、その理由を貯めていくサイト</strong>です。</p>
+    <p>ただの結果置き場ではありません。「<strong>なぜ勝ったのか / なぜ負けたのか</strong>」を言葉にして残すことで、次にデザインを提案するときに「前にこういう理由で勝った/負けたから、今回はこうすべき」と<strong>根拠を持って話せる</strong>ようになります。</p>
+  </div>
+  <ul>
+    <li>施策は<strong>カード</strong>として一覧表示されます（<span class="badge b-green">勝ち</span> <span class="badge b-gray">引き分け</span> <span class="badge b-red">負け</span>）</li>
+    <li>「横断インサイト」では、複数の施策から見えてきた<strong>共通パターン</strong>が見られます</li>
+  </ul>
+
+  <h2>2. 大事な考え方（3つだけ）</h2>
+  <ol>
+    <li><strong>事実と推測を分ける</strong> — PDFに書いてある「事実（📋）」と、AIや人の「推測（🤔）」をハッキリ区別します。ごちゃ混ぜにしません。</li>
+    <li><strong>デザインへの活かし方を書く</strong> — 「✅こうすると効く / ⚠️注意 / ❌やってはいけない」を、自分の事業部のユーザー目線で書きます。</li>
+    <li><strong>他の事業部には見えない</strong> — このサイトの施策は、<strong>このリポジトリ（保管場所）にアクセスできる人だけ</strong>が見られます。事業部ごとに別々の保管場所を持つので、他事業部の施策は混ざりません。</li>
+  </ol>
+
+  <h2>3. 自分の事業部のサイトを用意する（最初の1回だけ）</h2>
+  <div class="callout">すでに用意されたサイトを見るだけの人は、この章はとばして「4. サイトの見方」へ。</div>
+  <ol>
+    <li>GitHub でテンプレートのページを開く</li>
+    <li><strong>「Use this template（このテンプレートを使う）」ボタン</strong> → 自分の事業部の保管場所（リポジトリ）を作る（公開範囲は <strong>Private（非公開）</strong>）</li>
+    <li>作った保管場所を自分のパソコンに取ってくる（<code>git clone</code>）</li>
+    <li><code>data/site.js</code> の中の<strong>事業部名（badge）</strong>を、自分の事業部に書き換える</li>
+    <li>一緒に使うメンバーを、GitHubの設定で「Collaborator（共同編集者）」に追加する</li>
+  </ol>
+  <div class="callout tip">パソコン操作やGitに不安があれば、<strong>Claude Code にこのフォルダを開いて「セットアップを手伝って」と頼めば</strong>、順番に案内してくれます。</div>
+
+  <h2>4. サイトの見方</h2>
+  <h3>開き方</h3>
+  <p><code>index.html</code> というファイルをダブルクリックすると、ブラウザで開きます。</p>
+  <div class="callout warn">⚠️ Google Chrome で開いて <strong>PDF取り込みが動かない</strong>ときは、Firefox で開いてください。（Chromeは安全のため、パソコン上のファイルからPDFを読む動作を止めることがあります）</div>
+  <h3>画面の見どころ</h3>
+  <ul>
+    <li><strong>一覧</strong>: 施策カードが「勝ち / 引き分け / 負け」に分かれて並びます</li>
+    <li><strong>横断インサイト</strong>: 全体の勝率と、複数施策から見えた共通パターン</li>
+    <li><strong>左のサイドバー</strong>: 施策タイプやデバイス（SP/PC）でしぼり込み、キーワード検索</li>
+    <li><strong>カードをクリック</strong>: 施策の詳細（概要・仮説・数値・事実/推測・要因・デザイン観点・関連リンク）が開きます</li>
+  </ul>
+
+  <h2>5. 施策を追加する（2つの方法）</h2>
+
+  <div class="method rec">
+    <h3>✅ 方法A：おすすめ — ClaudeにPDFを読ませて、きれいなカードを作る</h3>
+    <p><strong>内容をちゃんと理解した、共有できる正式なカードを作る方法</strong>です。</p>
+    <ol>
+      <li>検証シートのPDFを、このフォルダの中（例 <code>pdf/</code> フォルダ）に置く</li>
+      <li>このフォルダで <strong>Claude Code を開く</strong></li>
+      <li><code>docs/PDFからカードを作る_Claudeへの指示.md</code> にある<strong>プロンプトをコピーして貼る</strong></li>
+      <li>Claudeがまず「PDFを読んで理解した内容」を見せてくれるので、<strong>合っているか確認</strong>する</li>
+      <li>OKすれば、Claudeがきれいなカードをサイトに追加してくれる</li>
+      <li>最後に保存して全員に共有（<code>git commit</code> → <code>git push</code>。ここもClaudeに頼めます）</li>
+    </ol>
+  </div>
+
+  <div class="method">
+    <h3>🔧 方法B：お試し — ブラウザにPDFをドロップ（下書きだけ）</h3>
+    <p><strong>サッと下書きを見たいとき用</strong>。きれいにはなりません。</p>
+    <ul>
+      <li>サイト右上の「<strong>＋ PDFから取り込み</strong>」にPDFをドロップ → その場でカードが出ます</li>
+      <li>⚠️ これは <strong>AIではなく機械的な仕分け</strong>なので、文章が混ざったり項目が抜けたりします</li>
+      <li>⚠️ さらに <strong>自分のブラウザにしか残りません</strong>（他の人には見えない・パソコンを変えると消える）</li>
+      <li>正式に共有したいときは、必ず<strong>方法A</strong>で仕上げてください</li>
+    </ul>
+    <div class="callout">なぜブラウザだけでは綺麗にならないの？ → サイトの中には「考えるAI」が入っていないからです。中身を理解して整理するのはClaudeの役目です。</div>
+  </div>
+
+  <h2>6. 施策の結果の見方（注意）</h2>
+  <p>カードの「勝ち / 負け」は、<strong>そのテスト期間中の結果</strong>にすぎません。数字だけで施策の価値を決めつけないでください。季節・ユーザー層・市場の動き・競合など、外の要因も一緒に考える必要があります。</p>
+
+  <h2>7. 困ったときは（Q&amp;A）</h2>
+  <p><strong>Q. 他の事業部に、うちの施策は見えてしまう？</strong><br>
+  A. 見えません。施策データは事業部ごとの別々の保管場所にあり、そこにアクセスできる人だけが見られます。</p>
+  <p><strong>Q. ブラウザにドロップしたカードが消えた</strong><br>
+  A. ドロップしたカードは「自分のブラウザだけの一時保存」です。共有・保存したいものは方法Aで正式に追加してください。</p>
+  <p><strong>Q. Chromeで「＋ PDFから取り込み」が反応しない / エラーになる</strong><br>
+  A. Firefoxで開いてください。それでも困ったらClaudeに「ローカルサーバーで開く方法を教えて」と聞けば案内します。</p>
+  <p><strong>Q. PDFの項目がうまく読み取れない</strong><br>
+  A. 事業部によって検証シートの様式が違うためです。方法A（Claude）ならその場で理解して吸収します。ブラウザ取り込みを直したい場合は、Claudeに「うちのシートに合わせて <code>extract.js</code> を調整して」と頼めます。</p>
+  <p><strong>Q. 操作がわからない</strong><br>
+  A. このフォルダで Claude Code を開き、やりたいことを日本語で伝えてください。このサイトの仕組みはClaudeが理解しています。</p>
+
+  <h2>8. ミニ用語辞典</h2>
+  <table>
+    <tr><th>言葉</th><th>かんたんな意味</th></tr>
+    <tr><td>リポジトリ</td><td>ファイル一式の保管場所（GitHub上にある）</td></tr>
+    <tr><td>clone（クローン）</td><td>保管場所を自分のパソコンに取ってくること</td></tr>
+    <tr><td>commit / push</td><td>変更を保存して、みんなの保管場所に反映すること</td></tr>
+    <tr><td>Claude Code</td><td>このフォルダの中身を理解して作業を手伝ってくれるAI</td></tr>
+    <tr><td>カード</td><td>1つの施策を表す表示。クリックで詳細が開く</td></tr>
+    <tr><td>事実 / AI推論</td><td>📋事実＝資料に書いてあること、🤔推論＝推測・仮説</td></tr>
+  </table>
+
+  <div class="foot">施策蓄積サイト 取扱説明書 — より詳しい話は各リポジトリの <code>README.md</code> と <code>docs/</code> フォルダを参照してください。</div>
+
+</div>
+</body>
+</html>
